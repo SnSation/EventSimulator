@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h5>Synopsis</h5>
+<p>This is a Flask application holding the API for my Participant-Gauntlent Modeler. The links in the navigation will direct you to the pages and necessary instructions for using the API.</p>
+<ul>
+    <li>Populate Database:<br />
+        A list of forms which, upon use, will populate the database with all the relevant information.<br />
+        These forms are meant to be used once, as they activate scripts which add records to a database.<br />
+        If used multiple times, they will add duplicate information to the database.<br />
+        Link scripts will be commented out after their first use, but are left there in case the database becomes FUBAR<br />
+    </li>
+    <li>API:<br />
+        A page with API instructions, sample queries, and a form to query data directly.
+    </li>
+</ul>
+{% endblock content %}
