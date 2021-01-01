@@ -5,6 +5,7 @@ from wtforms import StringField, FloatField, IntegerField, SubmitField
 # Database Tables
 
 # Association Tables
+
 participant_event = db.Table('participant_event',
     db.Column('participant_id', db.Integer, db.ForeignKey('participant.id')),
     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
@@ -15,20 +16,20 @@ influencer_event = db.Table('influencer_event',
     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
 )
 
-obstacle_event = db.Table('obstacle_event',
-    db.Column('obstacle_id', db.Integer, db.ForeignKey('obstacle.id')),
-    db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
-)
-
-gauntlet_event = db.Table('gauntlet_event',
-    db.Column('gauntlet_id', db.Integer, db.ForeignKey('gauntlet.id')),
-    db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
-)
+# gauntlet_event = db.Table('gauntlet_event',
+#     db.Column('gauntlet_id', db.Integer, db.ForeignKey('gauntlet.id')),
+#     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
+# )
 
 trial_gauntlet = db.Table('trial_gauntlet',
     db.Column('trial_id', db.Integer, db.ForeignKey('trial.id')),
-    db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
+    db.Column('gauntlet_id', db.Integer, db.ForeignKey('gauntlet.id'))
 )
+
+# obstacle_event = db.Table('obstacle_event',
+#     db.Column('obstacle_id', db.Integer, db.ForeignKey('obstacle.id')),
+#     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
+# )
 
 # Main Tables
 
@@ -38,16 +39,16 @@ class Event(db.Model):
     object_type = db.Column(db.String(50), default='Event')
     name = db.Column(db.String(50))
     description = db.Column(db.String(500))
-    gauntlets = db.relationship('Gauntlet', secondary=participant_event, backref=db.backref('events', lazy='dynamic')) # Gauntlets in association table
+    # gauntlets = db.relationship('Gauntlet', secondary=gauntlet_event, backref=db.backref('events', lazy='dynamic')) # Gauntlets in association table
     participants = db.relationship('Participant', secondary=participant_event, backref=db.backref('events', lazy='dynamic')) # Participants in association table
     influencers = db.relationship('Influencer', secondary=influencer_event, backref=db.backref('events', lazy='dynamic')) # Influencers in association table
-    obstacles = db.relationship('Obstacle', secondary=obstacle_event, backref=db.backref('events', lazy='dynamic')) # Obstacles in association table
+    # obstacles = db.relationship('Obstacle', secondary=obstacle_event, backref=db.backref('events', lazy='dynamic')) # Obstacles in association table
 
     def __repr__(self):
         return f'<Event | ID: {self.id}> | Name: {self.name} >'
     
     def set_attributes(self, data_dict):
-        for attribute in ['name', 'gauntlet', 'description']:
+        for attribute in ['name', 'description']:
             if attribute in data_dict:
                 setattr(self, attribute, data_dict[attribute])
 
@@ -57,7 +58,7 @@ class Event(db.Model):
             'id':self.id,
             'name':self.name,
             'description': self.description,
-            'gauntlet_ID':self.gauntlet,
+            # 'gauntlet_ID':self.gauntlet,
             # 'participants':self.participants,
             # 'influencers':self.influencers,
             # 'obstacles':self.obstacles
@@ -83,7 +84,7 @@ class Gauntlet(db.Model):
     duration = db.Column(db.Integer)
     description = db.Column(db.String(500))
     trials = db.relationship('Trial', secondary=trial_gauntlet, backref=db.backref('gauntlets', lazy='dynamic'))
-    events = db.relationship('Event', secondary=gauntlet_event, backref=db.backref('gauntlets', lazy='dynamic'))
+    # events = db.relationship('Event', secondary=gauntlet_event, backref=db.backref('gauntlets', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Gauntlet | ID: {self.id}> | Name: {self.name} >'
@@ -99,7 +100,7 @@ class Gauntlet(db.Model):
             'name' : self.name,
             'duration': self.duration,
             'description': self.description,
-            # 'trials':self.trials,
+            'trials':self.trials,
             # 'events':self.events
         }
         return attributes
@@ -123,7 +124,7 @@ class Trial(db.Model):
     duration = db.Column(db.Integer)
     difficulty = db.Column(db.Integer)
     description = db.Column(db.String(500))
-    gauntlets = db.relationship('Gauntlet', secondary=trial_gauntlet, backref=db.backref('trials', lazy='dynamic'))
+    # gauntlets = db.relationship('Gauntlet', secondary=trial_gauntlet, backref=db.backref('trials', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Trial | ID: {self.id}> | Name: {self.name} >'
@@ -140,7 +141,7 @@ class Trial(db.Model):
             'duration' : self.duration,
             'dificulty' : self.difficulty,
             'description' : self.description,
-            # 'gauntlets' : self.gauntlets
+            'gauntlets' : self.gauntlets
         }
         return attributes
 
@@ -165,7 +166,7 @@ class Participant(db.Model):
     attribute_3 = db.Column(db.Integer)
     attribute_4 = db.Column(db.Integer)
     attribute_5 = db.Column(db.Integer)
-    events = db.relationship('Event', secondary=participant_event, backref=db.backref('participants', lazy='dynamic'))
+    # events = db.relationship('Event', secondary=participant_event, backref=db.backref('participants', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Participant | ID: {self.id}> | Name: {self.name_1} {self.name_2} >'
@@ -211,7 +212,7 @@ class Influencer(db.Model):
     attribute_3 = db.Column(db.Integer)
     attribute_4 = db.Column(db.Integer)
     attribute_5 = db.Column(db.Integer)
-    events = db.relationship('Event', secondary=influencer_event, backref=db.backref('influencers', lazy='dynamic'))
+    # events = db.relationship('Event', secondary=influencer_event, backref=db.backref('influencers', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Influencer | ID: {self.id}> | Name: {self.name_1} {self.name_2} >'
@@ -255,7 +256,7 @@ class Obstacle(db.Model):
     duration = db.Column(db.Integer)
     intensity = db.Column(db.Integer) # 1-100, decribes how much the event affects the participant
     chance = db.Column(db.Integer) # Chance of event triggering per tick
-    events = db.relationship('Event', secondary=obstacle_event, backref=db.backref('obstacles', lazy='dynamic'))
+    # events = db.relationship('Event', secondary=obstacle_event, backref=db.backref('obstacles', lazy='dynamic'))
 
     def __repr__(self):
         return f'<Obstacle | ID: {self.id}> | Name: {self.name} >'
