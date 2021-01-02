@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <h3 class="page_title">
+        Gauntlet API
+    </h3>
+</div>
+<div class="row">
+    <ul class="section_list">
+        <li class="section_item">
+            <a href="{{ url_for('api.all_participants') }}" class="section_link">
+                All Participants
+            </a>
+        </li>
+        <li class="section_item">
+            <a href="{{ url_for('api.all_events') }}" class="section_link">
+                All Events
+            </a>
+        </li>
+    </ul>
+</div>
+{% endblock content %}

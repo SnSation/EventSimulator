@@ -16,10 +16,10 @@ influencer_event = db.Table('influencer_event',
     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
 )
 
-# gauntlet_event = db.Table('gauntlet_event',
-#     db.Column('gauntlet_id', db.Integer, db.ForeignKey('gauntlet.id')),
-#     db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
-# )
+gauntlet_event = db.Table('gauntlet_event',
+    db.Column('gauntlet_id', db.Integer, db.ForeignKey('gauntlet.id')),
+    db.Column('event_id', db.Integer, db.ForeignKey('event.id'))
+)
 
 trial_gauntlet = db.Table('trial_gauntlet',
     db.Column('trial_id', db.Integer, db.ForeignKey('trial.id')),
@@ -39,7 +39,7 @@ class Event(db.Model):
     object_type = db.Column(db.String(50), default='Event')
     name = db.Column(db.String(50))
     description = db.Column(db.String(500))
-    # gauntlets = db.relationship('Gauntlet', secondary=gauntlet_event, backref=db.backref('events', lazy='dynamic')) # Gauntlets in association table
+    gauntlets = db.relationship('Gauntlet', secondary=gauntlet_event, backref=db.backref('events', lazy='dynamic')) # Gauntlets in association table
     participants = db.relationship('Participant', secondary=participant_event, backref=db.backref('events', lazy='dynamic')) # Participants in association table
     influencers = db.relationship('Influencer', secondary=influencer_event, backref=db.backref('events', lazy='dynamic')) # Influencers in association table
     # obstacles = db.relationship('Obstacle', secondary=obstacle_event, backref=db.backref('events', lazy='dynamic')) # Obstacles in association table
@@ -58,9 +58,9 @@ class Event(db.Model):
             'id':self.id,
             'name':self.name,
             'description': self.description,
-            # 'gauntlet_ID':self.gauntlet,
-            # 'participants':self.participants,
-            # 'influencers':self.influencers,
+            'gauntlets':self.gauntlets,
+            'participants':self.participants,
+            'influencers':self.influencers,
             # 'obstacles':self.obstacles
         }
         return attributes
@@ -141,7 +141,7 @@ class Trial(db.Model):
             'duration' : self.duration,
             'dificulty' : self.difficulty,
             'description' : self.description,
-            'gauntlets' : self.gauntlets
+            # 'gauntlets' : self.gauntlets
         }
         return attributes
 

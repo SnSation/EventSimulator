@@ -84,8 +84,18 @@ def test_obstacle():
 # Population for New Database
 
 # Random Population Button
-@database.route('/arbitrary', gethods=['GET', 'POST'])
+@database.route('/arbitrary', methods=['GET', 'POST'])
 def arbitrary():
+    # Associate Gauntlets with Events
+    all_events = Event.query.all()
+    print(len(all_events))
+    for event in all_events:
+        gauntlet_id = random.randint(43, 142)
+        this_gauntlet = Gauntlet.query.filter_by(id=gauntlet_id).first()
+        event.gauntlets.append(this_gauntlet)
+        db.session.commit()
+
+
     return redirect(url_for('database.main'))
 
 

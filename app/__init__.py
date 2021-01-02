@@ -19,4 +19,10 @@ def create_app(config_file=Config):
     from .blueprints.database import bp as database_bp
     app.register_blueprint(database_bp)
 
+    from .blueprints.api import bp as api_bp
+    app.register_blueprint(api_bp)
+
+    from .blueprints.modeler import bp as modeler_bp
+    app.register_blueprint(modeler_bp)
+
     return app
