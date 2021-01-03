@@ -226,6 +226,7 @@ class Influencer(db.Model):
     # WIP
     def to_dict(self):
         attributes = {
+            'id': self.id,
             'name_1' : self.name_1,
             'name_2' : self.name_2,
             'attribute_1' : self.attribute_1,
