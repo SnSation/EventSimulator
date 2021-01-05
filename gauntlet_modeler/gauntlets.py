@@ -1,7 +1,6 @@
 import GauntletObjects
 from datetime import datetime
 
-saved_data = []
 class GauntletApp:
     def __init__(self, owner_id):
         self.owner_id = owner_id
@@ -25,14 +24,17 @@ class GauntletApp:
             new_run = EventRun(self.current_event)
             new_run.start_run()
             
-            self.runs.append(new_run)
+            self.runs.append(new_run.results)
             return new_run
     
     def randomize_event_team(self, size=10):
         self.current_event.teams[0] = self.library.generate_random_team(size)
         
     def randomize_event_gauntlet(self, size=5):
-        self.current_event.gauntlets[0] = self.library.generate_random_gauntlet(size)        
+        self.current_event.gauntlets[0] = self.library.generate_random_gauntlet(size)  
+
+    def randomize_event_influencer(self):
+        self.current_event.influencers = self.library.generate_random_influencers(1)      
         
     def run_tests(self, quantity, target):
         self.new_random_event()
@@ -44,9 +46,14 @@ class GauntletApp:
             elif target == 'gauntlet':
                 self.randomize_event_gauntlet()
                 self.run_event()
+            elif target == 'influencer':
+                self.randomize_event_influencer()
+                self.run_event()
             else:
                 return 'Target Error'
             count += 1
+
+
     
 class EventRun:
     def __init__(self, event, team_index=0, gauntlet_index=0, influencer_index=0):
@@ -158,23 +165,46 @@ class EventRun:
                         
             # Set Participant Data
             for participant in self.team.participants:
-                print(participant)
+                # print(participant)
                 # Log Current Participant Values
                 row_number += 1
-                results[row_number] = {}
+
+                # Previous Version as Dictionary is commented out
+                # results[row_number] = {}
+                results[row_number] = []
                 row = results[row_number]
-                row['index'] = row_number
-                row['event'] = self.event.name
-                row['gauntlet'] = self.gauntlet.name
-                row['trial'] = current_trial.name
-                row['time'] = event_time
-                row['day'] = current_day
-                row['first_name'] = participant.first_name
-                row['last_name'] = participant.last_name
+                # row['index'] = row_number
+                row.append(row_number) # i = 0
+                # row['event'] = self.event.name
+                row.append(self.event.name) # i = 1
+                # row['gauntlet'] = self.gauntlet.name
+                row.append(self.gauntlet.name) # i = 2
+                # row['trial'] = current_trial.name
+                row.append(current_trial.name) # i = 3
+                # row['time'] = event_time
+                row.append(event_time) # i = 4
+                # row['day'] = current_day
+                row.append(current_day) # i = 5
+                # row['first_name'] = participant.first_name
+                row.append(participant.first_name) # i = 6
+                # row['last_name'] = participant.last_name
+                row.append(participant.last_name) # i = 7
+
+                current_status = self.participant_status(participant, current_time, is_weekend, is_class)
+                row.append(current_status) # i = 8
+
+                row.append(perfect_progress) # i = 9
+                row.append(round(participant.attributes['major']/(perfect_progress+1), 2)) # i = 10
+                row.append(self.influencer.first_name)
+                row.append(self.influencer.last_name)
+                row.append(self.influencer.attributes['attribute_1'])
+                row.append(self.influencer.attributes['attribute_2'])
                 for attribute, value in participant.attributes.items():
-                    row[attribute] = value
-                row['perfect_progress'] = perfect_progress
-                row['participant_success'] = round(participant.attributes['major']/(perfect_progress+1), 2)
+                    # row[attribute] = value
+                    row.append(value)
+
+                # row['perfect_progress'] = perfect_progress
+                # row['participant_success'] = round(participant.attributes['major']/(perfect_progress+1), 2)
                 
 #                 print(f'Perfect Progress: {perfect_progress}')
 #                 print(f"Participant Progress: {participant.attributes['major']}")
@@ -182,18 +212,22 @@ class EventRun:
                 
                 # Change Participant Data
                 # Determine Participant Status
-                row['participant_status'] = self.participant_status(participant, current_time, is_weekend, is_class)
+                # row['participant_status'] = self.participant_status(participant, current_time, is_weekend, is_class)
                 
 #                 print(row['participant_status'])
                 
                 # Determine Participant Progress
-                participant.attributes['major'] += self.participant_progress(participant, row['participant_status'], is_class, influencer_active, current_trial)
+                # participant.attributes['major'] += self.participant_progress(participant, row['participant_status'], is_class, influencer_active, current_trial)
+                # print(f"Current Experience: {participant.attributes['major']}")
+                progress = self.participant_progress(participant, current_status, is_class, influencer_active, current_trial)
+                # print(f'Progress: {progress}')
+                participant.attributes['major'] += progress
+                # print(f"New Experince: {participant.attributes['major']}")
                 
-                saved_data.append(results[row_number])
-
         real_end = datetime.now()
         print(f'End Time: {real_start}')    
-        print(f'Test Time: {real_end - real_start}')                                      
+        print(f'Test Time: {real_end - real_start}')
+        print(f"Rows Generated: {len(self.results['data'])}")                                      
         return self.results
     
     def participant_status(self, participant, current_time, is_weekend, is_class):
@@ -212,7 +246,7 @@ class EventRun:
     def participant_progress(self, participant, status, is_class, influencer_active, trial):        
         progress = 0
         if status == 'working':
-            trial_modifier = (11 - trial.difficulty) / 10
+            trial_modifier = 1 / trial.difficulty
 #             print(f'Trial Difficulty: {trial.difficulty}')
 #             print(f'Trial Modifier: {trial_modifier}')
             intelligence_modifier = participant.attributes['minor_1'] / 10
@@ -220,13 +254,8 @@ class EventRun:
             if influencer_active == False:
                 influencer_modifier = 1
 
-            progress = (100 * intelligence_modifier * trial_modifier) * (1 + influencer_modifier)
+            progress = round(((100 * intelligence_modifier * trial_modifier) * (1 + influencer_modifier)), 2)
+            # print(f'Calculated Progress: {progress}')
 #             print(f'Status: {status}')
 #         print(f'Progress: {progress}')
         return progress
-
-new_gauntlet = GauntletApp(0)
-new_gauntlet.new_random_event()
-print(new_gauntlet.current_event)
-new_gauntlet.run_event()
-print(new_gauntlet.runs[0])
