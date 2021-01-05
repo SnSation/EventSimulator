@@ -369,7 +369,6 @@ class GauntletEntities:
         return f'<Gauntlet Entities Object>'
     
     def generate_random_words(self, quantity):
-        print('Generating Random Words')
         count = 0
         word_list = []
         while count < quantity:
@@ -388,21 +387,21 @@ class GauntletEntities:
         return new_participant
     
     def generate_random_participants(self, quantity):
-        print('Generating Participants')
         random_participants = []
         count = 0
         while count < quantity:
-            print(f'{count + 1} Participants Generated')
             attributes_dict = {
-                'intelligence':random.randint(1, 10),
-                'endurance':random.randint(1, 10),
-                'volatility':random.randint(1, 10),
-                'background':random.randint(0, 288000)
+                'minor_1':random.randint(1, 10), # intelligence
+                'minor_2':random.randint(1, 10), # endurance
+                'minor_3':random.randint(1, 10), # volatility
+                'minor_4':random.randint(0, 48000), # background
+                'major': 0
             }
-            attributes_dict['experience'] = attributes_dict['background']
+            attributes_dict['major'] = attributes_dict['minor_4'] # experience
+            random_id = random.randint(1, 1000000)
             random_first = self.generate_random_words(1)
             random_last = self.generate_random_words(1)
-            random_participants.append(self.create_participant(count, random_first, random_last, attributes_dict))
+            random_participants.append(self.create_participant(random_id, random_first, random_last, attributes_dict))
             count += 1
             
         return random_participants
@@ -418,11 +417,10 @@ class GauntletEntities:
         return new_team
     
     def generate_random_team(self, team_size):
-        print('Generating Team')
         team_participants = self.generate_random_participants(team_size)
-        idno = sum([participant.attributes['background'] for participant in team_participants])
+        idno = sum([participant.attributes['major'] for participant in team_participants])
         name = self.generate_random_words(1)
-        random_team = self.create_team(0, idno, team_participants)
+        random_team = self.create_team(idno, name, team_participants)
         
         return random_team
     
@@ -437,16 +435,14 @@ class GauntletEntities:
         return new_influencer
     
     def generate_random_influencers(self, quantity):
-        print('Generating Influencers')
         random_influencers = []
         count = 0
         while count < quantity:
-            print(f'{count + 1} Influencers Generated')
             attributes_dict = {
-                'quality':random.randint(1, 10),
-                'commitment':random.randint(1, 10),
-                'volatility':random.randint(1, 10),
-                'availability':random.randint(0, 2)
+                'attribute_1':random.randint(1, 10), # quality
+                'attribute_2':random.randint(1, 10), # commitment
+                'attribute_3':random.randint(1, 10), # volatility
+                'attribute_4':random.randint(0, 2) # availability
             }
             random_first = self.generate_random_words(1)
             random_last = self.generate_random_words(1)
@@ -469,12 +465,10 @@ class GauntletEntities:
         return new_trial
         
     def generate_random_trials(self, quantity):
-        print('Generating Trials')
         random_trials = []
         count = 0
         
         while count < quantity:
-            print(f'{count+1} Trials Generated')
             random_name = self.generate_random_words(1)
             random_description = self.generate_random_words(10)
             random_difficulty = random.randint(1, 10)
@@ -498,7 +492,6 @@ class GauntletEntities:
         return new_gauntlet
     
     def generate_random_gauntlet(self, gauntlet_size):
-        print('Generating Gauntlet')
         random_name = self.generate_random_words(1)
         random_description = self.generate_random_words(10)
         random_extra = random.randint(0, 10)
@@ -522,7 +515,6 @@ class GauntletEntities:
         return new_event
     
     def generate_random_event(self, trial_quantity, team_quantity, team_size, influencer_quantity):
-        print('Generating Event')
         random_id = random.randint(1, 1000000)
         random_name = self.generate_random_words(1)
         random_description = self.generate_random_words(10)
@@ -543,5 +535,4 @@ class GauntletEntities:
         return random_event
     
     def randomize_event(self, event, gauntlet_pool, team_pool, influencer_pool):
-        print('Randomizing Event')
         event.randomize(gauntlet_pool, team_pool, len(event.teams), influencer_pool, len(event.influencers))
