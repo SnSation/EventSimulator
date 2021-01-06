@@ -1,5 +1,9 @@
 import GauntletObjects
 from datetime import datetime
+import math
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 class GauntletApp:
     def __init__(self, owner_id):
@@ -21,10 +25,12 @@ class GauntletApp:
             print('No Event Selected')
         else:
             print(f'Running Event: {self.current_event}')            
-            new_run = EventRun(self.current_event)
+            new_run = EventRunner(self.current_event)
             new_run.start_run()
-            
-            self.runs.append(new_run.results)
+            run_object = new_run.create_run()
+            run_object.set_columns()
+
+            self.runs.append(run_object)
             return new_run
     
     def randomize_event_team(self, size=10):
@@ -55,7 +61,7 @@ class GauntletApp:
 
 
     
-class EventRun:
+class EventRunner:
     def __init__(self, event, team_index=0, gauntlet_index=0, influencer_index=0):
         self.event = event
         self.team = event.teams[team_index]
@@ -259,3 +265,113 @@ class EventRun:
 #             print(f'Status: {status}')
 #         print(f'Progress: {progress}')
         return progress
+
+    def create_run(self):
+        new_run_object = Run(self.results, self.event)
+        new_run_object.set_columns()
+
+        return new_run_object
+
+class Run:
+    def __init__(self, run_data, event, name='Default_Name'):
+        self.name = name
+        self.run_data = run_data
+        self.stats = run_data['stats']
+        self.rows = run_data['data']
+        self.columns = []
+        self.event = event
+        
+    def __repr__(self):
+        return f'<Run | Name: {self.name}>'
+        
+    def set_columns(self):
+        data_points = ['row_number', 'event', 'gauntlet', 'trial', 'time', 'day', 'participant_first_name', 'participant_last_name', 'status', 'perfect_progress', 'success_value', 'influencer_first_name', 'influencer_last_name', 'influencer_attribute_1', 'influencer_attribute_2']
+
+        for attribute in self.event.teams[0].participants[0].attributes.keys():
+            data_points.append(f'participant_{attribute}')
+
+        self.columns = data_points
+        
+    def set_name(self, name):
+        self.name = name
+
+class Visualizer:
+    
+    def __init__(self, runs):
+        self.runs = runs
+        self.dataframes = []
+        self.figures = {}
+        
+    def runs_to_frame(self):
+        for run in self.runs:
+            columns = run.columns
+            rows = run.run_data['data']
+
+            new_frame = pd.DataFrame.from_dict(rows, orient='index', columns=columns)
+            self.dataframes.append(new_frame)
+
+class Final:
+    def __init__(self, name, trial_quantity=5, team_size=10):
+        self.name = name
+        self.test_count = 0
+        self.tests = {}
+        self.trial_quantity = trial_quantity
+        self.team_size = team_size
+
+    def run_tests(self, quantity):
+        count = 0
+        while count < quantity:
+            self.test_count += 1
+
+            new_gauntlet = GauntletApp(0)
+            new_gauntlet.new_random_event(self.trial_quantity, 1, self.team_size, 1)
+            new_gauntlet.run_event()
+            new_visualizer = Visualizer(new_gauntlet.runs)
+            new_visualizer.runs_to_frame()
+            this_frame = new_visualizer.dataframes[0]
+
+            this_test = this_frame
+            self.tests[self.test_count] = this_test
+
+            # start_rows = this_frame.head(10)
+            end_rows = this_frame.tail(self.team_size)
+            
+            print(f'Event:{new_gauntlet.current_event.name}')
+            average_success = end_rows.success_value.mean()
+            print(f'Average Success: {average_success}')
+            
+    #         participant_frames = []
+    #         for participant_name in this_frame.participant_first_name.unique():
+    #             participant_frame = this_frame[this_frame['participant_first_name'] == participant_name]
+    #             participant_frame.reset_index(drop=True, inplace=True)
+    #             participant_frames.append(participant_frame)
+    #         for frame in participant_frames:
+    #             success_frame = frame[frame['success_value'] <= .85]
+    #             success_frame.plot.line(x='time', y='success_value')
+                
+            end_students = end_rows[['participant_first_name', 'participant_last_name', 'participant_minor_1', 'participant_minor_2', 'success_value']]
+            passing_students = end_students[end_students['success_value'] > .5]
+            failing_students = end_students[end_students['success_value'] < .5]
+            print(f'Passing Intellect: {passing_students.participant_minor_1.mean()}')
+            print(f'Passing Endurance: {passing_students.participant_minor_2.mean()}')
+            print(f'Failing Intellect: {failing_students.participant_minor_1.mean()}')
+            print(f'Failing Endurance: {failing_students.participant_minor_2.mean()}')
+            
+            greater_intellect = end_rows[end_rows['participant_minor_1'] >= end_rows['participant_minor_2']]
+            greater_endurance = end_rows[end_rows['participant_minor_2'] >= end_rows['participant_minor_1']]
+            print(f'Greater Intellect Success: {greater_intellect.success_value.mean()}')
+            print(f'Greater Endurance Success: {greater_endurance.success_value.mean()}')
+            
+            above_int = end_rows[end_rows['participant_minor_1'] >= 5]
+            above_end = end_rows[end_rows['participant_minor_2'] >= 5]
+            below_int = end_rows[end_rows['participant_minor_1'] <= 5]
+            below_end = end_rows[end_rows['participant_minor_2'] <= 5]
+            
+            print(f'Above Int Success: {above_int.success_value.mean()}')
+            print(f'Above End Success: {above_end.success_value.mean()}')
+            print(f'Below Int Success: {below_int.success_value.mean()}')
+            print(f'Below End Success: {below_end.success_value.mean()}')
+            
+            print('=================================')
+            
+            count += 1
